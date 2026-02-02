@@ -96,11 +96,12 @@ def dashboard():
 # ===============================
 # PLANNING
 # ===============================
+# ===============================
+# PLANNING (TOUS LES EXAMENS)
+# ===============================
 def planning():
     st.title("🗓️ Planning des examens")
-    d1 = st.date_input("Date début", datetime.now())
-    d2 = st.date_input("Date fin", datetime.now() + timedelta(days=7))
-    
+
     role = st.session_state.role
     user_id = st.text_input("Votre matricule / ID") if role in ["Étudiant", "Professeur"] else None
 
@@ -111,23 +112,24 @@ def planning():
         JOIN modules m ON e.module_id = m.id
         JOIN professeurs p ON e.prof_id = p.id
         JOIN lieu_examen l ON e.salle_id = l.id
-        WHERE e.date_heure BETWEEN %s AND %s
         """
-        params = [d1, d2]
+
+        params = []
 
         # Étudiant voit seulement ses examens
         if role == "Étudiant" and user_id:
-            query += " AND e.module_id IN (SELECT module_id FROM inscriptions WHERE etudiant_id=%s)"
+            query += " WHERE e.module_id IN (SELECT module_id FROM inscriptions WHERE etudiant_id=%s)"
             params.append(user_id)
 
         # Professeur voit seulement ses surveillances
-        if role == "Professeur" and user_id:
-            query += " AND e.prof_id=%s"
+        elif role == "Professeur" and user_id:
+            query += " WHERE e.prof_id=%s"
             params.append(user_id)
 
         query += " ORDER BY e.date_heure"
         data = execute_query(query, tuple(params))
         st.dataframe(pd.DataFrame(data), use_container_width=True)
+
 
 # ===============================
 # AJOUT EXAMEN (Planificateur uniquement)
