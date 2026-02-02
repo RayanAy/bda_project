@@ -1,8 +1,7 @@
-import streamlit as st
+import streamlit as st 
 import pandas as pd
 import mysql.connector
 from datetime import datetime, timedelta
-import time
 
 # =====================================================
 # CONFIG PAGE
@@ -15,26 +14,17 @@ st.set_page_config(
 st.write("✅ APP STARTED OK")
 
 # =====================================================
-# CONNEXION DB (LOCAL / CLOUD AUTO)
+# CONNEXION DB (CLOUD FREESQL)
 # =====================================================
 def get_db_connection():
     try:
-        if "DB_HOST" in st.secrets:
-            return mysql.connector.connect(
-                host=st.secrets["DB_HOST"],
-                user=st.secrets["DB_USER"],
-                password=st.secrets["DB_PASSWORD"],
-                database=st.secrets["DB_NAME"],
-                port=st.secrets["DB_PORT"]
-            )
-        else:
-            return mysql.connector.connect(
-                host="127.0.0.1",
-                user="bdda_user",
-                password="Bdda@2026!",
-                database="BDDA",
-                port=3306
-            )
+        return mysql.connector.connect(
+            host="sql7.freesqldatabase.com",
+            user="sql7816017",
+            password="7Ml48zfqWV",
+            database="planning_examens",
+            port=3306
+        )
     except mysql.connector.Error as e:
         st.error(f"❌ Erreur DB : {e}")
         return None
@@ -52,7 +42,6 @@ def execute_query(query, params=None, fetch=True):
     conn.close()
     return result or []
 
-
 # =====================================================
 # AUTH
 # =====================================================
@@ -63,26 +52,21 @@ PASSWORDS = {
     "Planificateur": "planif123"
 }
 
-
 def check_password(role, pwd):
     return PASSWORDS.get(role) == pwd
-
 
 # =====================================================
 # LOGIN
 # =====================================================
 def login():
     st.title("🔐 Connexion")
-
     role = st.selectbox(
         "Rôle",
         ["Administrateur", "Vice-Doyen", "Chef de Département", "Planificateur", "Étudiant", "Professeur"]
     )
-
     pwd = ""
     if role in PASSWORDS:
         pwd = st.text_input("Mot de passe", type="password")
-
     if st.button("Se connecter"):
         if role in PASSWORDS and not check_password(role, pwd):
             st.error("Mot de passe incorrect")
@@ -92,54 +76,45 @@ def login():
             st.success(f"Connecté en tant que {role}")
             st.rerun()
 
-
 # =====================================================
 # DASHBOARD
 # =====================================================
 def dashboard():
     st.title("📊 Tableau de bord")
-
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        c = execute_query("SELECT COUNT(*) c FROM etudiants")
+        c = execute_query("SELECT COUNT(*) AS c FROM etudiants")
         st.metric("Étudiants", c[0]["c"])
 
     with col2:
-        c = execute_query("SELECT COUNT(*) c FROM examens")
+        c = execute_query("SELECT COUNT(*) AS c FROM examens")
         st.metric("Examens", c[0]["c"])
 
     with col3:
-        c = execute_query("SELECT COUNT(*) c FROM professeurs")
+        c = execute_query("SELECT COUNT(*) AS c FROM professeurs")
         st.metric("Professeurs", c[0]["c"])
 
     with col4:
-        c = execute_query("SELECT COUNT(*) c FROM conflits WHERE statut='DETECTE'")
+        c = execute_query("SELECT COUNT(*) AS c FROM conflits WHERE statut='DETECTE'")
         st.metric("Conflits actifs", c[0]["c"])
-
 
 # =====================================================
 # PLANNING
 # =====================================================
 def planning():
     st.title("🗓️ Planning des examens")
-
     d1 = st.date_input("Date début", datetime.now())
     d2 = st.date_input("Date fin", datetime.now() + timedelta(days=7))
-
     if st.button("Afficher"):
         q = """
-        SELECT e.date_heure, m.nom module, f.nom formation, l.nom salle, e.duree_minutes
-        FROM examens e
-        JOIN modules m ON e.module_id = m.id
-        JOIN formations f ON m.formation_id = f.id
-        JOIN lieu_examen l ON e.salle_id = l.id
-        WHERE e.date_heure BETWEEN %s AND %s
-        ORDER BY e.date_heure
+        SELECT *
+        FROM planning_examens
+        WHERE date_heure BETWEEN %s AND %s
+        ORDER BY date_heure
         """
         data = execute_query(q, (d1, d2))
         st.dataframe(pd.DataFrame(data), use_container_width=True)
-
 
 # =====================================================
 # CONFLITS
@@ -153,7 +128,6 @@ def conflits():
     WHERE c.statut='DETECTE'
     """
     st.dataframe(pd.DataFrame(execute_query(q)), use_container_width=True)
-
 
 # =====================================================
 # MAIN
@@ -186,7 +160,6 @@ def main():
         planning()
     elif st.session_state.page == "conflits":
         conflits()
-
 
 if __name__ == "__main__":
     main()
