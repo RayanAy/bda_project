@@ -22,12 +22,13 @@ def get_db_connection():
             host="sql7.freesqldatabase.com",
             user="sql7816017",
             password="7Ml48zfqWV",
-            database="planning_examens",
+            database="sql7816017",  # <-- utiliser la base FreeSQL réelle
             port=3306
         )
     except mysql.connector.Error as e:
         st.error(f"❌ Erreur DB : {e}")
         return None
+
 
 
 def execute_query(query, params=None, fetch=True):
