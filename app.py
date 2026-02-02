@@ -7,7 +7,7 @@ import random
 
 # =====================================================
 # CONFIGURATION DE LA PAGE
-# =====================================================
+# ====================================================
 st.set_page_config(
     page_title="Plateforme d'Optimisation des Examens",
     page_icon="",
