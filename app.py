@@ -16,9 +16,9 @@ def get_db_connection():
     try:
         return mysql.connector.connect(
             host="sql7.freesqldatabase.com",
-            user="sql7816017",
-            password="7Ml48zfqWV",
-            database="sql7816017",
+            user="sql7816114",
+            password="uHDuktK7C1",
+            database="sql7816114",
             port=3306
         )
     except mysql.connector.Error as e:
